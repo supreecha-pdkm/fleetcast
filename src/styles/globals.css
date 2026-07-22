@@ -1,0 +1,309 @@
+@import 'tailwindcss';
+
+/* ============================================================================
+   Fleetcast Design Tokens
+   ----------------------------------------------------------------------------
+   Two layers:
+     1. Raw ramps + validated data-viz palette  (:root / .dark)
+     2. Semantic aliases consumed by components (@theme inline)
+   Never reference a raw hex in a component. Always go through a semantic token.
+   ========================================================================== */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+
+  /* -- Surfaces & ink -------------------------------------------------- */
+  --plane: #f9f9f7;
+  --surface: #fcfcfb;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f2f2ef;
+  --surface-hover: #f4f4f1;
+
+  --ink-primary: #0b0b0b;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+
+  --hairline: rgb(11 11 11 / 0.1);
+  --hairline-strong: rgb(11 11 11 / 0.16);
+  --gridline: #e1e0d9;
+  --axis: #c3c2b7;
+
+  /* -- Brand & interactive --------------------------------------------- */
+  --brand: #008300;
+  --accent-ai: #4a3aa7;
+  --accent-ai-wash: rgb(74 58 167 / 0.09);
+
+  /* -- Data-viz categorical (validated, light steps) -------------------- */
+  --series-1: #2a78d6; /* blue    */
+  --series-2: #eb6834; /* orange  */
+  --series-3: #1baf7a; /* aqua    */
+  --series-4: #eda100; /* yellow  */
+  --series-other: #898781;
+
+  /* -- Sequential blue ramp (load-factor heatmap) ----------------------- */
+  --seq-100: #cde2fb;
+  --seq-200: #9ec5f4;
+  --seq-300: #6da7ec;
+  --seq-400: #3987e5;
+  --seq-500: #256abf;
+  --seq-600: #184f95;
+  --seq-700: #0d366b;
+
+  /* Readable ink for text sitting on each ramp step. Heatmap cells print
+     their value, so every step needs a paired foreground. */
+  --seq-100-fg: #0b0b0b;
+  --seq-200-fg: #0b0b0b;
+  --seq-300-fg: #0b0b0b;
+  --seq-400-fg: #ffffff;
+  --seq-500-fg: #ffffff;
+  --seq-600-fg: #ffffff;
+  --seq-700-fg: #ffffff;
+
+  /* -- Status (fixed, never themed) ------------------------------------- */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --delta-up: #006300;
+  --delta-down: #d03b3b;
+
+  --status-good-wash: rgb(12 163 12 / 0.1);
+  --status-warning-wash: rgb(250 178 25 / 0.14);
+  --status-serious-wash: rgb(236 131 90 / 0.14);
+  --status-critical-wash: rgb(208 59 59 / 0.1);
+
+  /* -- Elevation --------------------------------------------------------- */
+  --shadow-card: 0 1px 2px rgb(11 11 11 / 0.04), 0 1px 3px rgb(11 11 11 / 0.03);
+  --shadow-raised: 0 2px 4px rgb(11 11 11 / 0.04), 0 8px 24px rgb(11 11 11 / 0.06);
+  --shadow-overlay: 0 8px 16px rgb(11 11 11 / 0.08), 0 24px 48px rgb(11 11 11 / 0.12);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --plane: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-raised: #212120;
+  --surface-sunken: #131312;
+  --surface-hover: #262624;
+
+  --ink-primary: #ffffff;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #898781;
+
+  --hairline: rgb(255 255 255 / 0.1);
+  --hairline-strong: rgb(255 255 255 / 0.16);
+  --gridline: #2c2c2a;
+  --axis: #383835;
+
+  --brand: #29a329;
+  --accent-ai: #9085e9;
+  --accent-ai-wash: rgb(144 133 233 / 0.14);
+
+  /* Dark steps of the same eight hues — selected for the dark surface,
+     not an automatic flip. Validated against #1a1a19. */
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-other: #898781;
+
+  /* Sequential ramp runs dark→light on a dark surface so "more" still
+     means "more visually present". */
+  --seq-100: #0d366b;
+  --seq-200: #184f95;
+  --seq-300: #256abf;
+  --seq-400: #2a78d6;
+  --seq-500: #3987e5;
+  --seq-600: #6da7ec;
+  --seq-700: #9ec5f4;
+
+  --seq-100-fg: #ffffff;
+  --seq-200-fg: #ffffff;
+  --seq-300-fg: #ffffff;
+  --seq-400-fg: #ffffff;
+  --seq-500-fg: #ffffff;
+  --seq-600-fg: #0b0b0b;
+  --seq-700-fg: #0b0b0b;
+
+  --delta-up: #0ca30c;
+  --delta-down: #e66767;
+
+  --status-good-wash: rgb(12 163 12 / 0.16);
+  --status-warning-wash: rgb(250 178 25 / 0.16);
+  --status-serious-wash: rgb(236 131 90 / 0.16);
+  --status-critical-wash: rgb(208 59 59 / 0.18);
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-raised: 0 2px 4px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.5);
+  --shadow-overlay: 0 8px 16px rgb(0 0 0 / 0.5), 0 24px 48px rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-plane: var(--plane);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-ink: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-gridline: var(--gridline);
+  --color-axis: var(--axis);
+
+  --color-brand: var(--brand);
+  --color-ai: var(--accent-ai);
+  --color-ai-wash: var(--accent-ai-wash);
+
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
+  --color-series-other: var(--series-other);
+
+  --color-good: var(--status-good);
+  --color-warning: var(--status-warning);
+  --color-serious: var(--status-serious);
+  --color-critical: var(--status-critical);
+  --color-good-wash: var(--status-good-wash);
+  --color-warning-wash: var(--status-warning-wash);
+  --color-serious-wash: var(--status-serious-wash);
+  --color-critical-wash: var(--status-critical-wash);
+  --color-delta-up: var(--delta-up);
+  --color-delta-down: var(--delta-down);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-overlay: var(--shadow-overlay);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Inter', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  --radius-card: 0.75rem;
+
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-rise: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+    opacity: 0.55;
+  }
+  70% {
+    box-shadow: 0 0 0 5px transparent;
+    opacity: 0;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    opacity: 0;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--hairline);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--plane);
+    color: var(--ink-primary);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--accent-ai-wash);
+  }
+
+  /* Recessive, unobtrusive scrollbars — Linear/Vercel style. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--axis) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--axis);
+    border-radius: 999px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-ai);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Columns of figures that must align vertically. Never on hero numbers. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hairline-b {
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .hairline-r {
+    border-right: 1px solid var(--hairline);
+  }
+
+  /* The faint top highlight that makes an enterprise card read as "raised". */
+  .card-sheen {
+    background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.5), transparent 64px);
+  }
+  .dark .card-sheen {
+    background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.024), transparent 64px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
