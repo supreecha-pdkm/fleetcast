@@ -168,6 +168,9 @@ export const REGION_LABELS: Record<string, string> = {
   'Border Corridor': 'เส้นทางชายแดน',
 }
 
+/** Label for the unscoped option of the route filter. */
+export const ALL_ROUTES_LABEL = 'ทุกเส้นทาง'
+
 /** Display names for the booking channels. Partner brands keep their name. */
 export const CHANNEL_LABELS: Record<string, string> = {
   'Fair Fair B2B': 'Fair Fair B2B (ตัวแทน)',

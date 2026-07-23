@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { DEFAULT_FILTERS, fetchDashboard, type DashboardFilters } from '@/services/repository'
+import {
+  ALL_ROUTES,
+  DEFAULT_FILTERS,
+  fetchDashboard,
+  type DashboardFilters,
+} from '@/services/repository'
 import type { DashboardSnapshot } from '@/types/domain'
 
 export interface UseDashboardResult {
@@ -41,8 +46,17 @@ export function useDashboard(): UseDashboardResult {
     }
   }, [filters])
 
+  // Changing region invalidates the selected route, so the reset lives here
+  // rather than in the filter row — and lands in the same state update, so a
+  // region change still costs exactly one refetch.
   const setFilters = useCallback((next: Partial<DashboardFilters>) => {
-    setFiltersState((current) => ({ ...current, ...next }))
+    setFiltersState((current) => {
+      const merged = { ...current, ...next }
+      if (next.region !== undefined && next.region !== current.region) {
+        return { ...merged, routeId: ALL_ROUTES }
+      }
+      return merged
+    })
   }, [])
 
   return {

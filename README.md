@@ -4,8 +4,8 @@ A clickable, front-end-only prototype of an enterprise demand-forecasting platfo
 **Green Capital Transport** (Green Bus / Chaiyaphat, northern Thailand).
 
 It answers the questions the business case asks: how many passengers will each route and
-departure carry over the next 7–30 days, which departures will run full, and where buses
-should be added or withdrawn.
+departure carry over the next month to a year, which departures will run full, and where
+buses should be added or withdrawn.
 
 ```bash
 npm install
@@ -21,10 +21,11 @@ warehouse, a small but genuine forecasting model is fitted to it in the browser,
 KPI, chart, status and recommendation is derived from that fit.
 
 ```
-data/generateDataset.ts      960 departure records  (8 routes × 4 slots × 30 days)
+data/generateDataset.ts      11,680 departure records  (8 routes × 4 slots × 365 days)
         ↓
 services/forecastEngine.ts   seasonal indices → damped trend → prediction intervals
-        ↓                    + a 7-day hold-out backtest  → MAPE, accuracy, coverage
+        ↓                    32 fitted series (route × slot), 365 days ahead
+        ↓                    + a 7-day hold-out backtest  → MAPE, accuracy
 services/analytics.ts        KPIs · heatmap · route ranking · capacity bands · summary
 services/recommendations.ts  rule engine over the horizon → ranked, costed actions
         ↓
@@ -41,21 +42,29 @@ drawn to look convincing:
 1. **Pooled day-of-week seasonal indices** (ratio-to-series-mean), with known holiday
    effects divided out first so they are not double counted.
 2. **Damped linear trend** on the deseasonalised level, fitted per route × departure slot
-   by OLS. Damping (φ = 0.94) stops a 30-day extrapolation running away.
+   by OLS. Damping (φ = 0.94) stops a year-long extrapolation running away — the geometric
+   sum converges, so the trend term flattens out instead of growing without bound.
 3. **Holiday multipliers** from a Thai public-holiday calendar — the late-July
    King's-Birthday / Asalha Bucha / Khao Phansa block drives the forecast peak.
 4. **80% prediction intervals** from residual sigma, widening with √horizon.
 5. **A hold-out backtest**: refit on all but the last 7 observed days, score the rest.
-   That is where _Forecast Accuracy_ (~92%), MAPE, interval coverage and drift come from.
+   That is where _Forecast Accuracy_ (~93%, i.e. MAPE ≈ 6.8%) comes from.
 
 Because the generator applies a network-wide daily shock that does not cancel when routes
 are summed, the measured error lands in a realistic 6–9% band rather than an implausible 1%.
 
 ### Why the numbers move when you filter
 
-The horizon (7 / 14 / 30 days) and region controls re-query the repository, and every
-downstream figure is recomputed against that slice — passenger totals, load factors, route
-counts, recommendations and the narrative summary all change together.
+Three controls — horizon (1 month / 1 quarter / 1 year), region, and route — re-query the
+repository, and every downstream figure is recomputed against that slice: passenger totals,
+load factors, route counts, recommendations and the narrative summary all change together.
+
+The route list is scoped by the selected region, and both the option list and the query read
+it from the same `routesInRegion()` helper, so what a planner can pick can never drift from
+what the query returns. Changing region resets route back to _all_ in the same state update,
+so it still costs exactly one refetch. Pick a single route and the card copy follows the
+scope — "ทั้งเครือข่าย" becomes that route, because calling one route's numbers
+network-wide would be a lie.
 
 ---
 
@@ -137,7 +146,8 @@ src/
 │   ├── layout/       Sidebar · Header · DashboardLayout
 │   ├── common/       SectionTitle · ThemeToggle · Sparkline · EmptyState · skeletons
 │   ├── charts/       ChartCard · ForecastChart · DemandHeatmap · ChannelDonut · theme
-│   └── dashboard/    KpiGrid · MetricCard · RouteRanking · RecommendationPanel · …
+│   └── dashboard/    FilterBar · KpiGrid · MetricCard · RouteRanking · RouteStatusBoard ·
+│                     CapacityUtilization · RecommendationPanel · RecommendationCard
 ├── data/             constants (routes, holidays, thresholds) · dataset generator
 ├── services/         forecastEngine · analytics · recommendations · repository
 ├── hooks/            useDashboard · useTheme
@@ -151,9 +161,13 @@ CLAUDE.md             working rules for Claude Code
 
 ## Known limits
 
-- It is a prototype: navigation beyond _Demand Overview_, search and the account menu are
+- It is a prototype: navigation beyond _Demand Overview_ and the account menu are
   presentational, and marked as such in the UI.
 - "Now" is pinned to **22 Jul 2026** (`SIMULATED_NOW`) so timestamps and relative labels read
-  identically on any machine at any time.
+  identically on any machine at any time. History runs back to 22 Jul 2025 and the forecast
+  out to 21 Jul 2027.
+- The forecast chart draws at most **120 days** of history behind the horizon
+  (`MAX_CHART_HISTORY_DAYS`). A year of actuals against a year of forecast is 730 points on
+  one line — legible as a table, not as a chart. The snapshot reports the window it drew.
 - Recharts dominates the bundle (~816 kB raw / ~245 kB gzipped). Fine for a demo; a
   production build would code-split the chart layer.

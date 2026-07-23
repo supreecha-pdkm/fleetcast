@@ -29,6 +29,11 @@ import { formatNumber, formatPercent } from '@/lib/format'
 export function DashboardPage() {
   const { snapshot, filters, setFilters, isLoading, isRefreshing } = useDashboard()
 
+  // Card copy has to follow the scope: once a single route is selected, calling
+  // the same numbers "ทั้งเครือข่าย" would be wrong.
+  const scopedRoute = snapshot?.routes.length === 1 ? snapshot.routes[0] : undefined
+  const scopeLabel = scopedRoute ? `เส้นทาง ${scopedRoute.code}` : 'ทั้งเครือข่าย'
+
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -78,7 +83,7 @@ export function DashboardPage() {
           <ChartCardSkeleton height={300} />
         ) : (
           <ChartCard
-            title="ความต้องการทั้งเครือข่าย · ค่าจริงเทียบค่าพยากรณ์"
+            title={`ความต้องการ${scopeLabel} · ค่าจริงเทียบค่าพยากรณ์`}
             description={`จำนวนผู้โดยสารรายวันย้อนหลัง ${snapshot.historyDays} วัน และ${horizonAheadLabel(filters.horizonDays)} แถบสีเทาคือวันหยุดนักขัตฤกษ์`}
             legend={FORECAST_LEGEND}
             dimmed={isRefreshing}
@@ -106,7 +111,7 @@ export function DashboardPage() {
               <ChartCard
                 className="xl:col-span-8"
                 title="แผนภาพความหนาแน่น · เส้นทาง × รอบเดินรถ"
-                description={`อัตราบรรทุกเฉลี่ยที่พยากรณ์ของแต่ละรอบเดินรถ ใน${horizonAheadLabel(filters.horizonDays)}`}
+                description={`อัตราบรรทุกเฉลี่ยที่พยากรณ์ของแต่ละรอบเดินรถ${scopedRoute ? ` บนเส้นทาง ${scopedRoute.name}` : ''} ใน${horizonAheadLabel(filters.horizonDays)}`}
                 actions={<HeatmapScale />}
                 dimmed={isRefreshing}
                 chart={
@@ -186,8 +191,12 @@ export function DashboardPage() {
             <>
               <div className="space-y-4 xl:col-span-8">
                 <ChartCard
-                  title="อันดับเส้นทาง · ความต้องการที่พยากรณ์สูงสุด"
-                  description={`จัดอันดับตามจำนวนผู้โดยสารที่พยากรณ์ใน${horizonAheadLabel(filters.horizonDays)}`}
+                  title={
+                    scopedRoute
+                      ? `เส้นทาง ${scopedRoute.code} · ความต้องการที่พยากรณ์`
+                      : 'อันดับเส้นทาง · ความต้องการที่พยากรณ์สูงสุด'
+                  }
+                  description={`${scopedRoute ? 'จำนวน' : 'จัดอันดับตามจำนวน'}ผู้โดยสารที่พยากรณ์ใน${horizonAheadLabel(filters.horizonDays)}`}
                   actions={
                     <span className="hidden items-center gap-1.5 text-[11px] text-ink-muted sm:flex">
                       <ListOrdered className="size-3.5" aria-hidden />

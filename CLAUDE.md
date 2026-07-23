@@ -30,13 +30,23 @@ engine, or the analytics modules directly.
   from the generated dataset + fitted model. A number typed into a component is a bug.
 - **Time is pinned.** `TODAY` / `SIMULATED_NOW` in `data/constants.ts` = 2026-07-22. Never
   call `new Date()` for "now"; never use `Math.random()` — use `lib/rng.ts` (seeded).
+  `HISTORY_DAYS` = `FORECAST_DAYS` = 365: every delta compares an equal-length lookback, so
+  the history can never be shorter than the horizon. Horizons are `[30, 90, 365]` and their
+  wording comes from `horizonLabel` / `horizonAheadLabel` / `horizonBackLabel` — a "N วัน"
+  string typed into a component is a bug, same as a hard-coded number.
 - **No raw hex in components.** Tokens live in `styles/globals.css` (raw ramps on
   `:root`/`.dark`, semantic aliases via `@theme inline`).
 - **Chart palette is validated, not a preference.** Fixed slot order blue → orange → aqua →
   yellow, assigned by entity (never by rank, never cycled). Donut caps at 3 named slices +
   neutral "Other". Dark mode uses selected steps, not an inversion.
 - No dual-axis charts. Status colour always ships with an icon + text label. Heatmap prints
-  its value in every cell. Every chart has a table-view twin. One filter row scopes the page.
+  its value in every cell. Every chart has a table-view twin.
+- **One filter row scopes the page** — horizon, region, route; no per-card filters. Route is
+  scoped by region: the option list and the query both read `routesInRegion()` in
+  `services/repository.ts`, so what a planner can pick can never drift from what the query
+  returns. `useDashboard.setFilters` resets `routeId` to `ALL_ROUTES` on a region change, in
+  the same state update, so it stays one refetch. When the scope is a single route, card copy
+  must say so instead of "ทั้งเครือข่าย".
 - On refetch the previous render dims — it does not collapse back to skeletons.
 
 ## TypeScript

@@ -24,17 +24,34 @@ import {
 } from '@/services/analytics'
 import { trainForecastModel, type ForecastModel } from '@/services/forecastEngine'
 import { buildRecommendations } from '@/services/recommendations'
-import type { DashboardSnapshot, TicketRecord } from '@/types/domain'
+import type { DashboardSnapshot, Route, TicketRecord } from '@/types/domain'
 
 export const REGIONS = ['all', 'Northern Corridor', 'Bangkok Trunk', 'Border Corridor'] as const
 export type RegionFilter = (typeof REGIONS)[number]
 
+/** `'all'` or a `Route['id']`. */
+export type RouteFilter = string
+export const ALL_ROUTES: RouteFilter = 'all'
+
 export interface DashboardFilters {
   readonly horizonDays: HorizonOption
   readonly region: RegionFilter
+  readonly routeId: RouteFilter
 }
 
-export const DEFAULT_FILTERS: DashboardFilters = { horizonDays: 30, region: 'all' }
+export const DEFAULT_FILTERS: DashboardFilters = {
+  horizonDays: 30,
+  region: 'all',
+  routeId: ALL_ROUTES,
+}
+
+/**
+ * Routes a region scopes to. Shared by the query below and the filter row, so
+ * the option list a planner sees can never drift from what the query returns.
+ */
+export function routesInRegion(region: RegionFilter): readonly Route[] {
+  return region === 'all' ? ROUTES : ROUTES.filter((route) => route.region === region)
+}
 
 /**
  * Fake repository layer. Stands in for the BigQuery-backed API the real
@@ -64,8 +81,11 @@ export function datasetSize(): number {
 function selectSnapshot(filters: DashboardFilters): DashboardSnapshot {
   const { records, model } = loadWarehouse()
 
-  const routes =
-    filters.region === 'all' ? ROUTES : ROUTES.filter((route) => route.region === filters.region)
+  // Route narrows within the region. A route id left over from another region
+  // falls back to the whole region rather than returning an empty dashboard.
+  const regionRoutes = routesInRegion(filters.region)
+  const picked = regionRoutes.filter((route) => route.id === filters.routeId)
+  const routes = filters.routeId !== ALL_ROUTES && picked.length > 0 ? picked : regionRoutes
   const routeIds = new Set(routes.map((route) => route.id))
 
   const scopedRecords = records.filter((record) => routeIds.has(record.routeId))
