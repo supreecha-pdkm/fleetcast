@@ -32,7 +32,7 @@ export function Header({ onOpenNav, alertCount }: HeaderProps) {
         <span className="text-[13px] font-medium text-ink">ภาพรวมความต้องการ</span>
       </nav>
 
-      <Badge tone="ai" className="hidden md:inline-flex">
+      <Badge tone="forecast" className="hidden md:inline-flex">
         โมเดลทำงานสด
       </Badge>
 

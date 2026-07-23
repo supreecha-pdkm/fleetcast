@@ -203,9 +203,13 @@ export const LOAD_FACTOR_THRESHOLDS = {
   target: 0.78,
 } as const
 
+/**
+ * Descriptive labels for the forecasting method. These must keep describing
+ * what `services/forecastEngine.ts` actually computes — no AI, no machine
+ * learning, no external model call. If the engine changes, change these too.
+ */
 export const MODEL = {
   name: 'ระบบพยากรณ์ความต้องการเดินทาง Fleetcast',
-  version: 'v4.2.1',
-  algorithm: 'โมเดลผสม Gradient-Boosted Trees + Seasonal ARIMA',
-  features: 47,
+  version: 'v0.1.0-prototype',
+  algorithm: 'ดัชนีฤดูกาลรายวันในสัปดาห์ + แนวโน้มถดถอยเชิงเส้นแบบหน่วง (OLS)',
 } as const

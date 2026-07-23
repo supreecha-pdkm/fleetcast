@@ -1,4 +1,4 @@
-import { Sparkles, ShieldCheck } from 'lucide-react'
+import { ListChecks, ShieldCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { EmptyState } from '@/components/common/EmptyState'
@@ -41,11 +41,11 @@ export function RecommendationPanel({
       <CardHeader className="flex-wrap">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-md bg-ai-wash text-ai">
-              <Sparkles className="size-3.5" strokeWidth={2} aria-hidden />
+            <span className="flex size-6 items-center justify-center rounded-md bg-forecast-wash text-forecast">
+              <ListChecks className="size-3.5" strokeWidth={2} aria-hidden />
             </span>
             <h3 className="text-[15px] leading-6 font-semibold tracking-[-0.01em] text-ink">
-              ข้อเสนอแนะจาก AI
+              ข้อเสนอแนะจากกฎเกณฑ์
             </h3>
           </div>
           <p className="mt-1 text-[13px] leading-5 text-ink-muted">

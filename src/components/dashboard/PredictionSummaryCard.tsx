@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowUpRight, CalendarClock, Sparkles } from 'lucide-react'
+import { ArrowDownRight, ArrowUpRight, CalendarClock, TrendingUp } from 'lucide-react'
 
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { formatShortDate, formatWeekday } from '@/lib/date'
@@ -50,8 +50,8 @@ export function PredictionSummaryCard({
       <CardHeader>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-md bg-ai-wash text-ai">
-              <Sparkles className="size-3.5" strokeWidth={2} aria-hidden />
+            <span className="flex size-6 items-center justify-center rounded-md bg-forecast-wash text-forecast">
+              <TrendingUp className="size-3.5" strokeWidth={2} aria-hidden />
             </span>
             <h3 className="text-[15px] leading-6 font-semibold tracking-[-0.01em] text-ink">
               สรุปผลการพยากรณ์

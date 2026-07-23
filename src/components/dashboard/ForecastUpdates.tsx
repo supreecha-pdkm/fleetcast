@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 import type { ForecastUpdate } from '@/types/domain'
 
 const KIND_META: Record<ForecastUpdate['kind'], { Icon: LucideIcon; chip: string }> = {
-  publish: { Icon: Send, chip: 'bg-ai-wash text-ai' },
+  publish: { Icon: Send, chip: 'bg-forecast-wash text-forecast' },
   retrain: { Icon: RefreshCcwDot, chip: 'bg-good-wash text-good' },
   drift: { Icon: GitBranch, chip: 'bg-warning-wash text-warning' },
   ingest: { Icon: DatabaseZap, chip: 'bg-surface-sunken text-ink-secondary' },

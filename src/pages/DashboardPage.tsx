@@ -208,7 +208,7 @@ export function DashboardPage() {
           )}
         </section>
 
-        {/* 4 · Route ranking · 5 · AI recommendations · channel mix · 10 · updates
+        {/* 4 · Route ranking · 5 · rule-based recommendations · channel mix · 10 · updates
             The recommendation panel is the tallest card on the page, so it takes
             the right rail for the whole block and the shorter cards stack beside
             it — otherwise it leaves a column of dead space. */}

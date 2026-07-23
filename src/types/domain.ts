@@ -174,7 +174,8 @@ export interface ModelMeta {
   readonly algorithm: string
   readonly trainedAt: string
   readonly trainingRows: number
-  readonly features: number
+  /** Number of route × departure-time series the engine fitted a curve to. */
+  readonly seriesFitted: number
   readonly nextRunAt: string
 }
 

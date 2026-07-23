@@ -13,7 +13,8 @@ const buttonVariants = cva(
         secondary:
           'border border-hairline bg-surface-raised text-ink shadow-card hover:bg-surface-hover hover:border-hairline-strong',
         ghost: 'text-ink-secondary hover:bg-surface-hover hover:text-ink',
-        ai: 'bg-ai-wash text-ai border border-ai/25 hover:border-ai/45 hover:bg-ai-wash',
+        forecast:
+          'bg-forecast-wash text-forecast border border-forecast/25 hover:border-forecast/45 hover:bg-forecast-wash',
       },
       size: {
         sm: 'h-8 px-2.5 text-[13px] [&_svg]:size-3.5',

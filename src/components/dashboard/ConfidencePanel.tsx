@@ -1,4 +1,4 @@
-import { Activity, Target } from 'lucide-react'
+import { Activity, Info, Target } from 'lucide-react'
 
 import { CHART_COLORS } from '@/components/charts/chartTheme'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -41,7 +41,7 @@ function ConfidenceGauge({ value }: { value: number }) {
             cy={GAUGE_SIZE / 2}
             r={radius}
             fill="none"
-            stroke="var(--accent-ai)"
+            stroke="var(--accent-forecast)"
             strokeWidth={STROKE}
             strokeLinecap="round"
             strokeDasharray={`${circumference} ${circumference * 4}`}
@@ -95,11 +95,20 @@ export function ConfidencePanel({
           <div className="flex items-center gap-2">
             <Target className="size-4 text-ink-muted" strokeWidth={2} aria-hidden />
             <h3 className="text-[15px] leading-6 font-semibold tracking-[-0.01em] text-ink">
-              ความเชื่อมั่นของโมเดล
+              ความเชื่อมั่นของแบบจำลอง
             </h3>
+            <InfoTip label="วิธีคำนวณ 5 ขั้น — (1) ดัชนีฤดูกาลรายวันในสัปดาห์แบบเฉลี่ยรวมทุกเส้นทาง (2) แนวโน้มถดถอยเชิงเส้นด้วย OLS บนข้อมูลที่ถอดฤดูกาลออกแล้ว หน่วงด้วยตัวประกอบ 0.94 ต่อวัน (3) ตัวคูณวันหยุดจากปฏิทิน (4) ช่วงพยากรณ์ 80% จากส่วนเบี่ยงเบนของค่าคลาดเคลื่อน กว้างขึ้นตามรากที่สองของระยะพยากรณ์ (5) ทดสอบย้อนหลังบน 7 วันสุดท้าย ไม่มีการเรียกใช้ AI หรือ machine learning ใด ๆ">
+              <button
+                type="button"
+                aria-label="วิธีคำนวณความเชื่อมั่น"
+                className="cursor-help text-ink-muted transition-colors duration-150 hover:text-ink-secondary"
+              >
+                <Info className="size-3.5" strokeWidth={2} aria-hidden />
+              </button>
+            </InfoTip>
           </div>
           <p className="mt-0.5 text-[13px] leading-5 text-ink-muted">
-            วัดจริงจากชุดทดสอบแบบเลื่อน 7 วัน ไม่ใช่ค่าที่กำหนดขึ้นเอง
+            คำนวณด้วยสถิติล้วน วัดจริงจากชุดทดสอบแบบเลื่อน 7 วัน ไม่ใช่ค่าที่กำหนดขึ้นเอง
           </p>
         </div>
       </CardHeader>
@@ -149,7 +158,7 @@ export function ConfidencePanel({
                     className="h-full rounded-full transition-[width] duration-700"
                     style={{
                       width: `${entry.confidence * 100}%`,
-                      backgroundColor: 'var(--accent-ai)',
+                      backgroundColor: 'var(--accent-forecast)',
                     }}
                   />
                 </div>
@@ -163,8 +172,8 @@ export function ConfidencePanel({
       </CardContent>
 
       <div className="border-t border-hairline px-5 py-3 text-[11px] leading-4 text-ink-muted">
-        {model.algorithm} · {model.features} ตัวแปร · {model.trainingRows.toLocaleString('th-TH')}{' '}
-        แถวข้อมูลที่ใช้เทรน
+        {model.algorithm} · {model.seriesFitted} ชุดข้อมูลอนุกรมเวลา ·{' '}
+        {model.trainingRows.toLocaleString('th-TH')} แถวข้อมูลที่ใช้คำนวณ
       </div>
     </Card>
   )

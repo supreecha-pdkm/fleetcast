@@ -13,7 +13,7 @@ const badgeVariants = cva(
         warning: 'border-warning/35 bg-warning-wash text-warning',
         serious: 'border-serious/35 bg-serious-wash text-serious',
         critical: 'border-critical/25 bg-critical-wash text-critical',
-        ai: 'border-ai/25 bg-ai-wash text-ai',
+        forecast: 'border-forecast/25 bg-forecast-wash text-forecast',
       },
     },
     defaultVariants: { tone: 'neutral' },

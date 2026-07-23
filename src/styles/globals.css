@@ -32,8 +32,8 @@
 
   /* -- Brand & interactive --------------------------------------------- */
   --brand: #008300;
-  --accent-ai: #4a3aa7;
-  --accent-ai-wash: rgb(74 58 167 / 0.09);
+  --accent-forecast: #4a3aa7;
+  --accent-forecast-wash: rgb(74 58 167 / 0.09);
 
   /* -- Data-viz categorical (validated, light steps) -------------------- */
   --series-1: #2a78d6; /* blue    */
@@ -99,8 +99,8 @@
   --axis: #383835;
 
   --brand: #29a329;
-  --accent-ai: #9085e9;
-  --accent-ai-wash: rgb(144 133 233 / 0.14);
+  --accent-forecast: #9085e9;
+  --accent-forecast-wash: rgb(144 133 233 / 0.14);
 
   /* Dark steps of the same eight hues — selected for the dark surface,
      not an automatic flip. Validated against #1a1a19. */
@@ -158,8 +158,8 @@
   --color-axis: var(--axis);
 
   --color-brand: var(--brand);
-  --color-ai: var(--accent-ai);
-  --color-ai-wash: var(--accent-ai-wash);
+  --color-forecast: var(--accent-forecast);
+  --color-forecast-wash: var(--accent-forecast-wash);
 
   --color-series-1: var(--series-1);
   --color-series-2: var(--series-2);
@@ -249,7 +249,7 @@
   }
 
   ::selection {
-    background-color: var(--accent-ai-wash);
+    background-color: var(--accent-forecast-wash);
   }
 
   /* Recessive, unobtrusive scrollbars — Linear/Vercel style. */
@@ -270,7 +270,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--accent-ai);
+    outline: 2px solid var(--accent-forecast);
     outline-offset: 2px;
   }
 }

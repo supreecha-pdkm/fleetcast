@@ -26,7 +26,7 @@ export function MetricCard({ metric, dimmed = false, className, style }: MetricC
     >
       {/* Accent rail — appears on hover, purely decorative. */}
       <span
-        className="absolute inset-y-0 left-0 w-px scale-y-0 bg-ai opacity-0 transition-all duration-300 group-hover:scale-y-100 group-hover:opacity-100"
+        className="absolute inset-y-0 left-0 w-px scale-y-0 bg-forecast opacity-0 transition-all duration-300 group-hover:scale-y-100 group-hover:opacity-100"
         aria-hidden
       />
 

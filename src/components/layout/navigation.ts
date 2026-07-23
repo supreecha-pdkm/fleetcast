@@ -6,7 +6,7 @@ import {
   LayoutDashboard,
   Route as RouteIcon,
   Settings,
-  Sparkles,
+  ListChecks,
   TrendingUp,
   type LucideIcon,
 } from 'lucide-react'
@@ -46,8 +46,8 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       {
         id: 'recommendations',
         label: 'ข้อเสนอแนะ',
-        icon: Sparkles,
-        badge: 'AI',
+        icon: ListChecks,
+        badge: 'กฎ',
         disabled: true,
       },
       { id: 'depots', label: 'อู่รถและสถานี', icon: Building2, disabled: true },

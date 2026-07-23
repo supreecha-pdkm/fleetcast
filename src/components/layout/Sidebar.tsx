@@ -36,7 +36,7 @@ function NavButton({ item, active }: { item: NavItem; active: boolean }) {
       <Icon className="size-4 shrink-0" strokeWidth={2} aria-hidden />
       <span className="truncate">{label}</span>
       {badge ? (
-        <Badge tone="ai" className="ml-auto">
+        <Badge tone="forecast" className="ml-auto">
           {badge}
         </Badge>
       ) : null}
@@ -122,7 +122,7 @@ export function Sidebar({ activeId, accuracy, onClose }: SidebarProps) {
           className="flex w-full items-center gap-2.5 rounded-lg p-1 transition-colors duration-150 hover:bg-surface-hover"
         >
           <span
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-ai-wash text-[11px] font-semibold text-ai"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-forecast-wash text-[11px] font-semibold text-forecast"
             aria-hidden
           >
             KJ

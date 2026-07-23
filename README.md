@@ -77,6 +77,11 @@ Route 166 (Chiang Mai – Chiang Rai) sustains 90–98% load and 152 (Mae Hong S
 empty — both reproduced from the source analysis, so the recommendations land on the routes
 you would expect.
 
+That analysis lives in [`docs/`](docs/): the [data inventory and ETL
+notes](docs/data-sources.md) behind the grain and the constants, and the [use-case
+survey](docs/use-cases.md) that places this prototype among the other things the dump
+supports. Read it before touching the generator or the domain model.
+
 ---
 
 ## Design system
@@ -139,6 +144,9 @@ src/
 ├── lib/              utils · date · format · seeded rng
 ├── types/            domain model
 └── pages/            DashboardPage
+
+docs/                 source data analysis (Thai) — inventory · ETL notes · use cases
+CLAUDE.md             working rules for Claude Code
 ```
 
 ## Known limits

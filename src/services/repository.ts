@@ -94,7 +94,7 @@ function selectSnapshot(filters: DashboardFilters): DashboardSnapshot {
       algorithm: MODEL.algorithm,
       trainedAt: new Date(SIMULATED_NOW.getTime() - 72 * 60_000).toISOString(),
       trainingRows: records.length,
-      features: MODEL.features,
+      seriesFitted: model.fits.length,
       nextRunAt: `${shiftIso(TODAY, 1)}T00:00:00.000Z`,
     },
     kpis: buildKpis({
