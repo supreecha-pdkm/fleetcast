@@ -6,15 +6,13 @@ import { cn } from '@/lib/utils'
 
 export interface DashboardLayoutProps {
   readonly children: ReactNode
-  readonly accuracy: number | null
-  readonly alertCount: number
 }
 
 /**
  * Desktop-first shell: a fixed sidebar from `lg` up, and an overlay drawer
  * below it. The main column scrolls independently of the sidebar.
  */
-export function DashboardLayout({ children, accuracy, alertCount }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [navOpen, setNavOpen] = useState(false)
 
   useEffect(() => {
@@ -29,7 +27,7 @@ export function DashboardLayout({ children, accuracy, alertCount }: DashboardLay
     <div className="min-h-dvh bg-plane">
       {/* Persistent sidebar — desktop and large tablet */}
       <aside className="hairline-r fixed inset-y-0 left-0 z-40 hidden lg:block">
-        <Sidebar activeId="overview" accuracy={accuracy} />
+        <Sidebar />
       </aside>
 
       {/* Drawer — tablet and mobile */}
@@ -53,12 +51,12 @@ export function DashboardLayout({ children, accuracy, alertCount }: DashboardLay
             navOpen ? 'translate-x-0' : '-translate-x-full',
           )}
         >
-          <Sidebar activeId="overview" accuracy={accuracy} onClose={() => setNavOpen(false)} />
+          <Sidebar onClose={() => setNavOpen(false)} />
         </div>
       </div>
 
       <div className="lg:pl-[248px]">
-        <Header onOpenNav={() => setNavOpen(true)} alertCount={alertCount} />
+        <Header onOpenNav={() => setNavOpen(true)} />
         <main className="mx-auto w-full max-w-[1600px] px-4 py-5 lg:px-6 lg:py-6">{children}</main>
       </div>
     </div>

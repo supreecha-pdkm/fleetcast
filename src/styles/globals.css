@@ -191,7 +191,6 @@
 
   --animate-shimmer: shimmer 1.8s ease-in-out infinite;
   --animate-rise: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @keyframes shimmer {
@@ -212,21 +211,6 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@keyframes pulse-ring {
-  0% {
-    box-shadow: 0 0 0 0 currentColor;
-    opacity: 0.55;
-  }
-  70% {
-    box-shadow: 0 0 0 5px transparent;
-    opacity: 0;
-  }
-  100% {
-    box-shadow: 0 0 0 0 transparent;
-    opacity: 0;
   }
 }
 

@@ -13,30 +13,24 @@ import {
 } from '@/components/common/LoadingSkeleton'
 import { SectionTitle } from '@/components/common/SectionTitle'
 import { CapacityTable, CapacityUtilization } from '@/components/dashboard/CapacityUtilization'
-import { ConfidencePanel } from '@/components/dashboard/ConfidencePanel'
 import { FilterBar } from '@/components/dashboard/FilterBar'
-import { ForecastUpdates } from '@/components/dashboard/ForecastUpdates'
 import { KpiGrid } from '@/components/dashboard/KpiGrid'
-import { PredictionSummaryCard } from '@/components/dashboard/PredictionSummaryCard'
 import { RecommendationPanel } from '@/components/dashboard/RecommendationPanel'
 import { RouteRanking, RouteRankingTable } from '@/components/dashboard/RouteRanking'
 import { RouteStatusBoard } from '@/components/dashboard/RouteStatusBoard'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TODAY } from '@/data/constants'
+import { TODAY, horizonAheadLabel } from '@/data/constants'
 import { useDashboard } from '@/hooks/useDashboard'
 import { formatLongDate } from '@/lib/date'
 import { formatNumber, formatPercent } from '@/lib/format'
 
 export function DashboardPage() {
-  const { snapshot, filters, setFilters, isLoading, isRefreshing, refresh } = useDashboard()
-
-  const accuracy = snapshot?.confidence.accuracy ?? null
-  const alertCount = snapshot?.recommendations.filter((r) => r.severity === 'critical').length ?? 0
+  const { snapshot, filters, setFilters, isLoading, isRefreshing } = useDashboard()
 
   return (
-    <DashboardLayout accuracy={accuracy} alertCount={alertCount}>
+    <DashboardLayout>
       <div className="space-y-5">
         {/* Page heading */}
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -53,9 +47,6 @@ export function DashboardPage() {
         <FilterBar
           filters={filters}
           onChange={setFilters}
-          onRefresh={refresh}
-          isRefreshing={isRefreshing}
-          generatedAt={snapshot?.generatedAt ?? null}
           recordCount={snapshot?.recordCount ?? null}
         />
 
@@ -82,65 +73,26 @@ export function DashboardPage() {
           )}
         </section>
 
-        {/* 9 · Prediction summary */}
+        {/* 2 · Forecast chart */}
         {isLoading || !snapshot ? (
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-4 w-48" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="mt-2 h-4 w-3/4" />
-              <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {Array.from({ length: 4 }, (_, i) => (
-                  <Skeleton key={i} className="h-14" />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ChartCardSkeleton height={300} />
         ) : (
-          <PredictionSummaryCard
-            summary={snapshot.summary}
-            model={snapshot.model}
+          <ChartCard
+            title="ความต้องการทั้งเครือข่าย · ค่าจริงเทียบค่าพยากรณ์"
+            description={`จำนวนผู้โดยสารรายวันย้อนหลัง ${snapshot.historyDays} วัน และ${horizonAheadLabel(filters.horizonDays)} แถบสีเทาคือวันหยุดนักขัตฤกษ์`}
+            legend={FORECAST_LEGEND}
             dimmed={isRefreshing}
+            chart={<ForecastChart series={snapshot.forecastSeries} today={TODAY} />}
+            table={<ForecastTable series={snapshot.forecastSeries} />}
+            footer={
+              <>
+                เส้นพยากรณ์ลากทับช่วงข้อมูลจริงด้วย ส่วนนั้นคือค่าที่โมเดลฟิตกับข้อมูลที่เห็นแล้ว
+                ยิ่งเกาะเส้นสีน้ำเงินใกล้เท่าไร ยิ่งสะท้อนความแม่นยำได้ดีเท่านั้น (
+                {formatPercent(snapshot.confidence.accuracy)} บนชุดทดสอบ)
+              </>
+            }
           />
         )}
-
-        {/* 2 · Forecast chart · 7 · Confidence */}
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-          {isLoading || !snapshot ? (
-            <>
-              <ChartCardSkeleton className="xl:col-span-8" height={300} />
-              <ChartCardSkeleton className="xl:col-span-4" height={300} />
-            </>
-          ) : (
-            <>
-              <ChartCard
-                className="xl:col-span-8"
-                title="ความต้องการทั้งเครือข่าย · ค่าจริงเทียบค่าพยากรณ์"
-                description={`จำนวนผู้โดยสารรายวันย้อนหลัง 30 วัน และอีก ${filters.horizonDays} วันข้างหน้า แถบสีเทาคือวันหยุดนักขัตฤกษ์`}
-                legend={FORECAST_LEGEND}
-                dimmed={isRefreshing}
-                chart={<ForecastChart series={snapshot.forecastSeries} today={TODAY} />}
-                table={<ForecastTable series={snapshot.forecastSeries} />}
-                footer={
-                  <>
-                    เส้นพยากรณ์ลากทับช่วงข้อมูลจริงด้วย
-                    ส่วนนั้นคือค่าที่โมเดลฟิตกับข้อมูลที่เห็นแล้ว ยิ่งเกาะเส้นสีน้ำเงินใกล้เท่าไร
-                    ยิ่งสะท้อนความแม่นยำได้ดีเท่านั้น ({formatPercent(snapshot.confidence.accuracy)}{' '}
-                    บนชุดทดสอบ)
-                  </>
-                }
-              />
-              <ConfidencePanel
-                className="xl:col-span-4"
-                confidence={snapshot.confidence}
-                model={snapshot.model}
-                dimmed={isRefreshing}
-              />
-            </>
-          )}
-        </div>
 
         {/* 3 · Heatmap · 6 · Capacity utilisation */}
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
@@ -154,7 +106,7 @@ export function DashboardPage() {
               <ChartCard
                 className="xl:col-span-8"
                 title="แผนภาพความหนาแน่น · เส้นทาง × รอบเดินรถ"
-                description={`อัตราบรรทุกเฉลี่ยที่พยากรณ์ของแต่ละรอบเดินรถ ในอีก ${filters.horizonDays} วันข้างหน้า`}
+                description={`อัตราบรรทุกเฉลี่ยที่พยากรณ์ของแต่ละรอบเดินรถ ใน${horizonAheadLabel(filters.horizonDays)}`}
                 actions={<HeatmapScale />}
                 dimmed={isRefreshing}
                 chart={
@@ -208,7 +160,7 @@ export function DashboardPage() {
           )}
         </section>
 
-        {/* 4 · Route ranking · 5 · rule-based recommendations · channel mix · 10 · updates
+        {/* 4 · Route ranking · 5 · rule-based recommendations · channel mix
             The recommendation panel is the tallest card on the page, so it takes
             the right rail for the whole block and the shorter cards stack beside
             it — otherwise it leaves a column of dead space. */}
@@ -219,7 +171,7 @@ export function DashboardPage() {
                 <ChartCardSkeleton height={320} />
                 <ChartCardSkeleton height={220} />
               </div>
-              <div className="space-y-4 xl:col-span-4">
+              <div className="xl:col-span-4">
                 <Card>
                   <CardHeader>
                     <Skeleton className="h-4 w-40" />
@@ -228,7 +180,6 @@ export function DashboardPage() {
                     <ListSkeleton rows={8} />
                   </CardContent>
                 </Card>
-                <ChartCardSkeleton height={220} />
               </div>
             </>
           ) : (
@@ -236,7 +187,7 @@ export function DashboardPage() {
               <div className="space-y-4 xl:col-span-8">
                 <ChartCard
                   title="อันดับเส้นทาง · ความต้องการที่พยากรณ์สูงสุด"
-                  description={`จัดอันดับตามจำนวนผู้โดยสารที่พยากรณ์ในอีก ${filters.horizonDays} วันข้างหน้า`}
+                  description={`จัดอันดับตามจำนวนผู้โดยสารที่พยากรณ์ใน${horizonAheadLabel(filters.horizonDays)}`}
                   actions={
                     <span className="hidden items-center gap-1.5 text-[11px] text-ink-muted sm:flex">
                       <ListOrdered className="size-3.5" aria-hidden />
@@ -248,15 +199,6 @@ export function DashboardPage() {
                   table={<RouteRankingTable forecasts={snapshot.routeForecasts} />}
                 />
 
-                <ForecastUpdates updates={snapshot.updates} dimmed={isRefreshing} />
-              </div>
-
-              <div className="space-y-4 xl:col-span-4">
-                <RecommendationPanel
-                  recommendations={snapshot.recommendations}
-                  dimmed={isRefreshing}
-                />
-
                 <ChartCard
                   title="สัดส่วนช่องทางการจอง"
                   description="สัดส่วนตั๋วที่ขายได้จริง แยกตามช่องทาง"
@@ -265,6 +207,13 @@ export function DashboardPage() {
                   chart={<ChannelDonut mix={snapshot.channelMix} />}
                   table={<ChannelTable mix={snapshot.channelMix} />}
                   footer="ช่องทาง API ของตัวแทนมีค่าบวกเพิ่มต่อตั๋วที่การขายตรงแบบ B2C ไม่มี — การเปลี่ยนสัดส่วนช่องทางจึงเป็นตัวแปรด้านกำไร ไม่ใช่แค่ปริมาณ"
+                />
+              </div>
+
+              <div className="xl:col-span-4">
+                <RecommendationPanel
+                  recommendations={snapshot.recommendations}
+                  dimmed={isRefreshing}
                 />
               </div>
             </>

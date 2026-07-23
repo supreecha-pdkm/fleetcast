@@ -1,6 +1,5 @@
-import { CalendarRange, Loader2, Map, RefreshCw } from 'lucide-react'
+import { CalendarRange, Map } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -8,23 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { formatRelative } from '@/lib/date'
-import { REGION_LABELS, SIMULATED_NOW } from '@/data/constants'
-import { cn } from '@/lib/utils'
-import {
-  HORIZON_OPTIONS,
-  REGIONS,
-  type DashboardFilters,
-  type HorizonOption,
-  type RegionFilter,
-} from '@/services/repository'
+import { HORIZON_OPTIONS, REGION_LABELS, horizonLabel, type HorizonOption } from '@/data/constants'
+import { REGIONS, type DashboardFilters, type RegionFilter } from '@/services/repository'
 
 export interface FilterBarProps {
   readonly filters: DashboardFilters
   readonly onChange: (next: Partial<DashboardFilters>) => void
-  readonly onRefresh: () => void
-  readonly isRefreshing: boolean
-  readonly generatedAt: string | null
   readonly recordCount: number | null
 }
 
@@ -32,14 +20,7 @@ export interface FilterBarProps {
  * One filter row above everything it scopes. Both controls re-query the
  * warehouse, so every card below re-renders against the same slice.
  */
-export function FilterBar({
-  filters,
-  onChange,
-  onRefresh,
-  isRefreshing,
-  generatedAt,
-  recordCount,
-}: FilterBarProps) {
+export function FilterBar({ filters, onChange, recordCount }: FilterBarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-xl border border-hairline bg-surface p-2 shadow-card">
       <div className="flex items-center gap-2">
@@ -56,7 +37,7 @@ export function FilterBar({
           <SelectContent>
             {HORIZON_OPTIONS.map((option) => (
               <SelectItem key={option} value={String(option)}>
-                อีก {option} วันข้างหน้า
+                {horizonLabel(option)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -91,27 +72,6 @@ export function FilterBar({
             รายการเที่ยวรถในขอบเขต
           </span>
         ) : null}
-
-        {generatedAt ? (
-          <span className="hidden md:inline">
-            อัปเดต{formatRelative(generatedAt, SIMULATED_NOW)}
-          </span>
-        ) : null}
-
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          aria-label="รันการพยากรณ์ใหม่"
-        >
-          {isRefreshing ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <RefreshCw className={cn('transition-transform duration-500')} />
-          )}
-          <span className="hidden sm:inline">{isRefreshing ? 'กำลังรัน…' : 'รันใหม่'}</span>
-        </Button>
       </div>
     </div>
   )

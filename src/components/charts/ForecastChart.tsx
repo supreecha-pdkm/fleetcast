@@ -21,13 +21,12 @@ import {
   GRID_PROPS,
   LINE_WIDTH,
 } from '@/components/charts/chartTheme'
-import { formatLongDate, formatShortDate } from '@/lib/date'
+import { formatLongDate, formatMonthYear, formatShortDate } from '@/lib/date'
 import { formatNumber, formatPercent } from '@/lib/format'
 import type { ForecastPoint } from '@/types/domain'
 
 interface Datum {
   readonly date: string
-  readonly label: string
   readonly actual: number | null
   /** In-sample model fit — the "forecast" line over observed days. */
   readonly fit: number | null
@@ -44,7 +43,6 @@ function toData(series: readonly ForecastPoint[]): Datum[] {
 
   return series.map((point, i) => ({
     date: point.date,
-    label: formatShortDate(point.date),
     actual: point.actual,
     // The seam day carries both, so the solid and dashed lines meet.
     fit: point.isFuture ? null : point.forecast,
@@ -86,6 +84,13 @@ export function ForecastChart({
   const blocks = useMemo(() => holidayBlocks(data), [data])
   const tickInterval = Math.max(1, Math.round(data.length / 9))
 
+  // The axis is keyed on the ISO date, not its label: a year-long horizon spans
+  // more than twelve months, and a day-and-month label would then repeat —
+  // duplicate categories put the "today" line and the holiday bands on the
+  // wrong day. Once the window is that long, the ticks carry the year too.
+  const spansMultipleMonths = data.length > 120
+  const formatTick = spansMultipleMonths ? formatMonthYear : formatShortDate
+
   return (
     <div className="h-[300px] w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -105,8 +110,8 @@ export function ForecastChart({
           {blocks.map((block) => (
             <ReferenceArea
               key={block.from}
-              x1={formatShortDate(block.from)}
-              x2={formatShortDate(block.to)}
+              x1={block.from}
+              x2={block.to}
               fill={CHART_COLORS.muted}
               fillOpacity={0.07}
               stroke="none"
@@ -114,9 +119,10 @@ export function ForecastChart({
           ))}
 
           <XAxis
-            dataKey="label"
+            dataKey="date"
             {...AXIS_PROPS}
             axisLine={{ stroke: CHART_COLORS.axis }}
+            tickFormatter={(value: string) => formatTick(value)}
             interval={tickInterval - 1}
             minTickGap={16}
             padding={{ left: 6, right: 6 }}
@@ -130,7 +136,7 @@ export function ForecastChart({
           />
 
           <ReferenceLine
-            x={formatShortDate(today)}
+            x={today}
             stroke={CHART_COLORS.axis}
             strokeWidth={1}
             label={{

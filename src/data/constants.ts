@@ -13,12 +13,55 @@ export const TODAY = '2026-07-22'
  */
 export const SIMULATED_NOW = new Date('2026-07-22T02:12:00.000Z') // 09:12 ICT
 
-export const HISTORY_DAYS = 30
-export const FORECAST_DAYS = 30
+/**
+ * History and horizon both span a full year: the longest selectable horizon is
+ * 1 year, and every "vs. the previous period" delta compares against an
+ * equal-length lookback — so the lookback has to be at least as long as the
+ * horizon or the comparison is meaningless.
+ */
+export const HISTORY_DAYS = 365
+export const FORECAST_DAYS = 365
 export const DATASET_SEED = 20_260_722
 
-/** First day of observed history (inclusive). */
-export const HISTORY_START = '2026-06-22'
+/** First day of observed history (inclusive) — `HISTORY_DAYS` before `TODAY`. */
+export const HISTORY_START = '2025-07-22'
+
+/**
+ * Upper bound on how much observed history the forecast chart draws behind the
+ * horizon. A full year of actuals plus a year of forecast is 730 points on one
+ * line — legible as a table, not as a chart.
+ */
+export const MAX_CHART_HISTORY_DAYS = 120
+
+/**
+ * Planning horizons, in days. Held as day counts because that is the unit the
+ * model predicts in; the calendar wording a planner reads lives in
+ * `HORIZON_LABELS`. None may exceed `FORECAST_DAYS`, or the option would
+ * silently return a shorter horizon than its label promises.
+ */
+export const HORIZON_OPTIONS = [30, 90, 365] as const
+export type HorizonOption = (typeof HORIZON_OPTIONS)[number]
+
+const HORIZON_LABELS: Record<HorizonOption, string> = {
+  30: '1 เดือน',
+  90: '1 ไตรมาส',
+  365: '1 ปี',
+}
+
+/** Calendar wording for a horizon — the single source for every horizon label. */
+export function horizonLabel(days: number): string {
+  return HORIZON_LABELS[days as HorizonOption] ?? `${days} วัน`
+}
+
+/** "อีก 1 ไตรมาสข้างหน้า" — the forward-looking phrasing used across the copy. */
+export function horizonAheadLabel(days: number): string {
+  return `อีก ${horizonLabel(days)}ข้างหน้า`
+}
+
+/** "เทียบ 1 ไตรมาสย้อนหลัง" — the equal-length lookback a delta is measured against. */
+export function horizonBackLabel(days: number): string {
+  return `เทียบ ${horizonLabel(days)}ย้อนหลัง`
+}
 
 /**
  * Departure slots. Every route runs all four, which is what makes the
@@ -174,8 +217,39 @@ export interface Holiday {
   readonly uplift: number
 }
 
-/** Thai public holidays and observances intersecting the modelled window. */
+/**
+ * Thai public holidays and observances across the modelled window
+ * (2025-07-22 → 2027-07-21) — one observed year plus one forecast year.
+ * Lunar-calendar dates (มาฆบูชา, วิสาขบูชา, อาสาฬหบูชา, เข้าพรรษา) in the
+ * out-years are the announced/projected dates and may shift by a day when the
+ * royal gazette confirms them; the demand shape is what matters here.
+ */
 export const HOLIDAYS: readonly Holiday[] = [
+  /* --- observed year ---------------------------------------------------- */
+  { date: '2025-07-28', name: 'วันเฉลิมพระชนมพรรษา ร.๑๐', uplift: 1.36 },
+  {
+    date: '2025-08-12',
+    name: 'วันเฉลิมพระชนมพรรษาสมเด็จพระบรมราชชนนีพันปีหลวง · วันแม่แห่งชาติ',
+    uplift: 1.3,
+  },
+  { date: '2025-10-13', name: 'วันนวมินทรมหาราช', uplift: 1.22 },
+  { date: '2025-10-23', name: 'วันปิยมหาราช', uplift: 1.24 },
+  { date: '2025-12-05', name: 'วันคล้ายวันพระบรมราชสมภพ ร.๙ · วันพ่อแห่งชาติ', uplift: 1.33 },
+  { date: '2025-12-10', name: 'วันรัฐธรรมนูญ', uplift: 1.25 },
+  { date: '2025-12-31', name: 'วันสิ้นปี', uplift: 1.52 },
+  { date: '2026-01-01', name: 'วันขึ้นปีใหม่', uplift: 1.48 },
+  { date: '2026-01-02', name: 'วันหยุดชดเชยเทศกาลปีใหม่', uplift: 1.34 },
+  { date: '2026-03-03', name: 'วันมาฆบูชา', uplift: 1.27 },
+  { date: '2026-04-06', name: 'วันจักรี', uplift: 1.26 },
+  { date: '2026-04-13', name: 'วันสงกรานต์', uplift: 1.58 },
+  { date: '2026-04-14', name: 'วันสงกรานต์', uplift: 1.62 },
+  { date: '2026-04-15', name: 'วันสงกรานต์', uplift: 1.55 },
+  { date: '2026-05-01', name: 'วันแรงงานแห่งชาติ', uplift: 1.28 },
+  { date: '2026-05-04', name: 'วันฉัตรมงคล', uplift: 1.24 },
+  { date: '2026-05-31', name: 'วันวิสาขบูชา', uplift: 1.28 },
+  { date: '2026-06-03', name: 'วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ พระบรมราชินี', uplift: 1.27 },
+
+  /* --- forecast year ---------------------------------------------------- */
   { date: '2026-07-27', name: 'วันหยุดชดเชยวันเฉลิมพระชนมพรรษา', uplift: 1.24 },
   { date: '2026-07-28', name: 'วันเฉลิมพระชนมพรรษา ร.๑๐', uplift: 1.38 },
   { date: '2026-07-29', name: 'วันอาสาฬหบูชา', uplift: 1.34 },
@@ -185,6 +259,23 @@ export const HOLIDAYS: readonly Holiday[] = [
     name: 'วันเฉลิมพระชนมพรรษาสมเด็จพระบรมราชชนนีพันปีหลวง · วันแม่แห่งชาติ',
     uplift: 1.31,
   },
+  { date: '2026-10-13', name: 'วันนวมินทรมหาราช', uplift: 1.22 },
+  { date: '2026-10-23', name: 'วันปิยมหาราช', uplift: 1.24 },
+  { date: '2026-12-05', name: 'วันคล้ายวันพระบรมราชสมภพ ร.๙ · วันพ่อแห่งชาติ', uplift: 1.33 },
+  { date: '2026-12-10', name: 'วันรัฐธรรมนูญ', uplift: 1.25 },
+  { date: '2026-12-31', name: 'วันสิ้นปี', uplift: 1.52 },
+  { date: '2027-01-01', name: 'วันขึ้นปีใหม่', uplift: 1.48 },
+  { date: '2027-02-21', name: 'วันมาฆบูชา', uplift: 1.27 },
+  { date: '2027-04-06', name: 'วันจักรี', uplift: 1.26 },
+  { date: '2027-04-13', name: 'วันสงกรานต์', uplift: 1.58 },
+  { date: '2027-04-14', name: 'วันสงกรานต์', uplift: 1.62 },
+  { date: '2027-04-15', name: 'วันสงกรานต์', uplift: 1.55 },
+  { date: '2027-05-01', name: 'วันแรงงานแห่งชาติ', uplift: 1.28 },
+  { date: '2027-05-04', name: 'วันฉัตรมงคล', uplift: 1.24 },
+  { date: '2027-05-20', name: 'วันวิสาขบูชา', uplift: 1.28 },
+  { date: '2027-06-03', name: 'วันเฉลิมพระชนมพรรษาสมเด็จพระนางเจ้าฯ พระบรมราชินี', uplift: 1.27 },
+  { date: '2027-07-18', name: 'วันอาสาฬหบูชา', uplift: 1.34 },
+  { date: '2027-07-19', name: 'วันเข้าพรรษา', uplift: 1.29 },
 ]
 
 export const HOLIDAY_BY_DATE: ReadonlyMap<string, Holiday> = new Map(

@@ -1,10 +1,12 @@
 import {
   DEPARTURE_SLOTS,
   HISTORY_DAYS,
+  MAX_CHART_HISTORY_DAYS,
   MODEL,
   ROUTES,
   SIMULATED_NOW,
   TODAY,
+  type HorizonOption,
 } from '@/data/constants'
 import { generateDataset } from '@/data/generateDataset'
 import { shiftIso } from '@/lib/date'
@@ -22,11 +24,7 @@ import {
 } from '@/services/analytics'
 import { trainForecastModel, type ForecastModel } from '@/services/forecastEngine'
 import { buildRecommendations } from '@/services/recommendations'
-import { buildUpdates } from '@/services/updatesFeed'
 import type { DashboardSnapshot, TicketRecord } from '@/types/domain'
-
-export const HORIZON_OPTIONS = [7, 14, 30] as const
-export type HorizonOption = (typeof HORIZON_OPTIONS)[number]
 
 export const REGIONS = ['all', 'Northern Corridor', 'Bangkok Trunk', 'Border Corridor'] as const
 export type RegionFilter = (typeof REGIONS)[number]
@@ -75,7 +73,14 @@ function selectSnapshot(filters: DashboardFilters): DashboardSnapshot {
     routeIds.has(row.routeId),
   )
 
-  const historyDays = Math.min(HISTORY_DAYS, Math.max(filters.horizonDays, 14))
+  // History shown behind the horizon tracks the horizon, but stops well short
+  // of it on the long options — a year of actuals drawn against a year of
+  // forecast is unreadable as a line.
+  const historyDays = Math.min(
+    HISTORY_DAYS,
+    MAX_CHART_HISTORY_DAYS,
+    Math.max(filters.horizonDays, 14),
+  )
   const series = buildForecastSeries(scopedRecords, model, scopedRows, historyDays)
   const routeForecasts = buildRouteForecasts(
     scopedRows,
@@ -106,6 +111,7 @@ function selectSnapshot(filters: DashboardFilters): DashboardSnapshot {
       horizonDays: filters.horizonDays,
     }),
     forecastSeries: series,
+    historyDays,
     heatmap: buildHeatmap(scopedRows, scopedRecords),
     departureTimes: DEPARTURE_SLOTS,
     routes,
@@ -113,8 +119,7 @@ function selectSnapshot(filters: DashboardFilters): DashboardSnapshot {
     recommendations,
     channelMix: buildChannelMix(scopedRecords),
     capacityBands: buildCapacityBands(scopedRows),
-    confidence: buildConfidence(model, filters.horizonDays),
-    updates: buildUpdates(model, routeForecasts, recommendations, scopedRecords.length),
+    confidence: buildConfidence(model),
     summary: buildSummary(scopedRows, series, routeForecasts, scopedRecords, filters.horizonDays),
     recordCount: scopedRecords.length,
   }

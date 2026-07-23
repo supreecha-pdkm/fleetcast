@@ -11,7 +11,6 @@ export interface UseDashboardResult {
   readonly isLoading: boolean
   /** True while re-querying with a payload already on screen. */
   readonly isRefreshing: boolean
-  readonly refresh: () => void
 }
 
 /**
@@ -23,7 +22,6 @@ export function useDashboard(): UseDashboardResult {
   const [filters, setFiltersState] = useState<DashboardFilters>(DEFAULT_FILTERS)
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [nonce, setNonce] = useState(0)
 
   const hasLoaded = useRef(false)
 
@@ -41,14 +39,10 @@ export function useDashboard(): UseDashboardResult {
     return () => {
       cancelled = true
     }
-  }, [filters, nonce])
+  }, [filters])
 
   const setFilters = useCallback((next: Partial<DashboardFilters>) => {
     setFiltersState((current) => ({ ...current, ...next }))
-  }, [])
-
-  const refresh = useCallback(() => {
-    setNonce((n) => n + 1)
   }, [])
 
   return {
@@ -57,6 +51,5 @@ export function useDashboard(): UseDashboardResult {
     setFilters,
     isLoading: snapshot === null,
     isRefreshing,
-    refresh,
   }
 }

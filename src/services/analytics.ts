@@ -1,4 +1,12 @@
-import { DEPARTURE_SLOTS, HOLIDAY_BY_DATE, LOAD_FACTOR_THRESHOLDS, ROUTES } from '@/data/constants'
+import {
+  DEPARTURE_SLOTS,
+  HOLIDAY_BY_DATE,
+  LOAD_FACTOR_THRESHOLDS,
+  ROUTES,
+  horizonAheadLabel,
+  horizonBackLabel,
+  horizonLabel,
+} from '@/data/constants'
 import { averageFare } from '@/data/generateDataset'
 import { dayOfWeek, formatShortDate, isWeekend } from '@/lib/date'
 import { clamp, groupBy, mean, pctChange, sortBy, sum } from '@/lib/utils'
@@ -54,6 +62,23 @@ export function buildHorizonRows(model: ForecastModel, horizonDays: number): Hor
 
 function loadFactorOf(passengers: number, capacity: number): number {
   return capacity === 0 ? 0 : clamp(passengers / capacity, 0, 1.35)
+}
+
+/** Points a sparkline is drawn at. A year of daily values is a smear, not a shape. */
+const SPARKLINE_POINTS = 30
+
+/**
+ * Averages a series down to at most `target` points. Averaging rather than
+ * sampling, so a downsampled sparkline keeps the level of the days it drops.
+ */
+function downsample(values: readonly number[], target = SPARKLINE_POINTS): number[] {
+  if (values.length <= target) return [...values]
+
+  const bucketSize = values.length / target
+  return Array.from({ length: target }, (_, i) => {
+    const bucket = values.slice(Math.floor(i * bucketSize), Math.floor((i + 1) * bucketSize))
+    return bucket.length === 0 ? 0 : mean(bucket)
+  })
 }
 
 /**
@@ -250,7 +275,7 @@ export function buildRouteForecasts(
         status: statusFor(predictedLoadFactor),
         confidence: confidenceAtHorizon(model.backtest, meanHorizon),
         peakDate: peak.date,
-        sparkline: daily.map((d) => d.value),
+        sparkline: downsample(daily.map((d) => d.value)),
       },
     ]
   })
@@ -336,10 +361,6 @@ export function buildKpis({
     recentRecords.map((r) => ({ routeId: r.routeId, loadFactor: r.loadFactor })),
   )
 
-  const midHorizon = Math.ceil(horizonDays / 2)
-  const confidence = confidenceAtHorizon(model.backtest, midHorizon)
-  const priorConfidence = confidenceAtHorizon(model.previousBacktest, midHorizon)
-
   const dailyRisk = dailyCount(rows, (lf) => lf >= atRisk && lf < overCapacity)
   const dailyOver = dailyCount(rows, (lf) => lf >= overCapacity)
 
@@ -351,9 +372,9 @@ export function buildKpis({
       previousValue: priorDemand,
       format: 'number',
       intentOnRise: 'positive',
-      caption: `จำนวนผู้โดยสารที่พยากรณ์ใน ${horizonDays} วัน · ${routeForecasts.length} เส้นทาง`,
-      sparkline: futureSeries.map((p) => p.forecast),
-      deltaLabel: `เทียบ ${horizonDays} วันย้อนหลัง`,
+      caption: `จำนวนผู้โดยสารที่พยากรณ์ใน ${horizonLabel(horizonDays)} · ${routeForecasts.length} เส้นทาง`,
+      sparkline: downsample(futureSeries.map((p) => p.forecast)),
+      deltaLabel: horizonBackLabel(horizonDays),
     }),
     metric({
       id: 'avg-load-factor',
@@ -363,7 +384,7 @@ export function buildKpis({
       format: 'percent',
       intentOnRise: 'positive',
       caption: `เป้าหมายเชิงพาณิชย์ ${Math.round(target * 100)}% · ที่นั่งที่ขายได้ ÷ ที่นั่งที่เปิดขาย`,
-      sparkline: futureSeries.map((p) => p.forecastLoadFactor),
+      sparkline: downsample(futureSeries.map((p) => p.forecastLoadFactor)),
       deltaLabel: 'เทียบช่วงก่อนหน้า',
     }),
     metric({
@@ -374,7 +395,7 @@ export function buildKpis({
       format: 'count',
       intentOnRise: 'negative',
       caption: `เที่ยวรถตั้งแต่ ${Math.round(AT_RISK_SHARE * 100)}% ขึ้นไป พยากรณ์ว่าบรรทุก ≥ ${Math.round(atRisk * 100)}% — มีแนวโน้มเต็ม`,
-      sparkline: dailyRisk,
+      sparkline: downsample(dailyRisk),
       deltaLabel: 'เทียบช่วงก่อนหน้า',
     }),
     metric({
@@ -385,7 +406,7 @@ export function buildKpis({
       format: 'count',
       intentOnRise: 'negative',
       caption: `เที่ยวรถตั้งแต่ ${Math.round(OVER_CAPACITY_SHARE * 100)}% ขึ้นไป พยากรณ์ที่ ${Math.round(overCapacity * 100)}%+ — ต้องปฏิเสธผู้โดยสาร`,
-      sparkline: dailyOver,
+      sparkline: downsample(dailyOver),
       deltaLabel: 'เทียบช่วงก่อนหน้า',
     }),
     metric({
@@ -398,19 +419,6 @@ export function buildKpis({
       caption: `1 − MAPE บนชุดทดสอบ 7 วัน · ความเอนเอียง ${(model.backtest.bias * 100).toFixed(1)}%`,
       sparkline: model.backtest.points.map((p) =>
         p.actual === 0 ? 1 : clamp(1 - Math.abs(p.predicted - p.actual) / p.actual, 0, 1),
-      ),
-      deltaLabel: 'เทียบรอบก่อนหน้า',
-    }),
-    metric({
-      id: 'ai-confidence',
-      label: 'ความเชื่อมั่นของ AI',
-      value: confidence,
-      previousValue: priorConfidence,
-      format: 'percent',
-      intentOnRise: 'positive',
-      caption: `ณ วันที่ ${midHorizon} ของช่วงพยากรณ์ · ครอบคลุมช่วงความเชื่อมั่น ${Math.round(model.backtest.coverage * 100)}%`,
-      sparkline: Array.from({ length: horizonDays }, (_, i) =>
-        confidenceAtHorizon(model.backtest, i + 1),
       ),
       deltaLabel: 'เทียบรอบก่อนหน้า',
     }),
@@ -529,21 +537,8 @@ export function buildCapacityBands(rows: readonly HorizonRow[]): CapacityBand[] 
   })
 }
 
-export function buildConfidence(model: ForecastModel, horizonDays: number): ConfidenceBreakdown {
-  const horizons = [7, 14, 21, 30].filter((h) => h <= Math.max(horizonDays, 7))
-  const drift = Math.abs(model.backtest.mape - model.previousBacktest.mape)
-
-  return {
-    overall: confidenceAtHorizon(model.backtest, Math.ceil(horizonDays / 2)),
-    accuracy: model.backtest.accuracy,
-    mape: model.backtest.mape,
-    coverage: model.backtest.coverage,
-    drift,
-    horizonDecay: horizons.map((horizon) => ({
-      horizon: `${horizon} วัน`,
-      confidence: confidenceAtHorizon(model.backtest, horizon),
-    })),
-  }
+export function buildConfidence(model: ForecastModel): ConfidenceBreakdown {
+  return { accuracy: model.backtest.accuracy }
 }
 
 /* --------------------------------------------------------------- summary  */
@@ -601,7 +596,7 @@ export function buildSummary(
       : ` โดยสูงสุดในวันที่ ${formatShortDate(peak.date)}`
 
   const narrative = [
-    `ความต้องการเดินทางทั้งเครือข่ายถูกพยากรณ์ไว้ที่ ${Math.round(totalPredicted).toLocaleString('th-TH')} ผู้โดยสาร ในอีก ${horizonDays} วันข้างหน้า`,
+    `ความต้องการเดินทางทั้งเครือข่ายถูกพยากรณ์ไว้ที่ ${Math.round(totalPredicted).toLocaleString('th-TH')} ผู้โดยสาร ใน${horizonAheadLabel(horizonDays)}`,
     peakClause,
     topRoute
       ? ` เส้นทาง ${topRoute.route.code} มีสัดส่วนมากที่สุดที่ ${Math.round(topRoute.predictedPassengers).toLocaleString('th-TH')} ผู้โดยสาร`

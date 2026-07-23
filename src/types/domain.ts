@@ -136,21 +136,7 @@ export interface CapacityBand {
 }
 
 export interface ConfidenceBreakdown {
-  readonly overall: number
   readonly accuracy: number
-  readonly mape: number
-  readonly coverage: number
-  readonly drift: number
-  readonly horizonDecay: readonly { readonly horizon: string; readonly confidence: number }[]
-}
-
-export interface ForecastUpdate {
-  readonly id: string
-  readonly timestamp: string
-  readonly title: string
-  readonly detail: string
-  readonly kind: 'retrain' | 'drift' | 'ingest' | 'alert' | 'publish'
-  readonly routeCode: string | null
 }
 
 export interface PredictionSummary {
@@ -185,6 +171,8 @@ export interface DashboardSnapshot {
   readonly model: ModelMeta
   readonly kpis: readonly KpiMetric[]
   readonly forecastSeries: readonly ForecastPoint[]
+  /** Observed days drawn behind the horizon — the chart's lookback window. */
+  readonly historyDays: number
   readonly heatmap: readonly HeatmapCell[]
   readonly departureTimes: readonly string[]
   readonly routes: readonly Route[]
@@ -193,7 +181,6 @@ export interface DashboardSnapshot {
   readonly channelMix: readonly ChannelMix[]
   readonly capacityBands: readonly CapacityBand[]
   readonly confidence: ConfidenceBreakdown
-  readonly updates: readonly ForecastUpdate[]
   readonly summary: PredictionSummary
   readonly recordCount: number
 }

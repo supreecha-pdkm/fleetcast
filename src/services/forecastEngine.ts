@@ -16,7 +16,11 @@ import type { DayOfWeek, TicketRecord } from '@/types/domain'
 
 /** 80% two-sided normal quantile. */
 const Z_80 = 1.2816
-/** Trend damping per day out. Stops a 30-day extrapolation running away. */
+/**
+ * Trend damping per day out. The cumulative contribution converges to
+ * `φ / (1 − φ)` ≈ 15.7 slope-days, so a one-year extrapolation flattens into
+ * level + seasonality instead of running away on the fitted slope.
+ */
 const DAMPING = 0.94
 const BACKTEST_DAYS = 7
 
@@ -92,8 +96,8 @@ function holidayUplift(date: string): number {
 
 /**
  * Pooled day-of-week indices. Pooling across every route keeps the estimate
- * stable on 30 days of history, where a per-route index would see each
- * weekday only four times.
+ * stable and stops a single route's quiet Tuesday from bending the shared
+ * weekly shape.
  */
 function computeDowIndex(records: readonly TicketRecord[]): Record<DayOfWeek, number> {
   const byDate = groupBy(records, (r) => r.travelDate)
@@ -145,11 +149,14 @@ function fitSeries(
   }
 }
 
-/** Damped cumulative trend contribution `slope · Σ φ^i` for i = 1..h. */
+/**
+ * Damped cumulative trend contribution `slope · Σ φ^i` for i = 1..h, in closed
+ * form — the geometric sum, not a loop, because a 365-day horizon would
+ * otherwise cost O(h²) per fitted series.
+ */
 function dampedTrend(slope: number, horizon: number): number {
-  let total = 0
-  for (let i = 1; i <= horizon; i += 1) total += Math.pow(DAMPING, i)
-  return slope * total
+  const geometric = (DAMPING * (1 - Math.pow(DAMPING, horizon))) / (1 - DAMPING)
+  return slope * geometric
 }
 
 function predictSeries(

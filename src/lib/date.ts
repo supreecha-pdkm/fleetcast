@@ -58,8 +58,9 @@ const longDate = new Intl.DateTimeFormat('th-TH', {
   timeZone: 'UTC',
 })
 
-const weekdayFormat = new Intl.DateTimeFormat('th-TH', {
-  weekday: 'short',
+const monthYear = new Intl.DateTimeFormat('th-TH', {
+  month: 'short',
+  year: '2-digit',
   timeZone: 'UTC',
 })
 
@@ -71,20 +72,9 @@ export function formatLongDate(iso: string): string {
   return longDate.format(parseIsoDate(iso))
 }
 
-/** Thai short weekday ("จ.", "อ.", …) — used as a caption beside a date. */
-export function formatWeekday(iso: string): string {
-  return weekdayFormat.format(parseIsoDate(iso))
-}
-
-/** "2 ชม. ที่แล้ว" / "เมื่อสักครู่" — for the forecast-update feed. */
-export function formatRelative(isoTimestamp: string, now: Date): string {
-  const deltaMinutes = Math.round((now.getTime() - new Date(isoTimestamp).getTime()) / 60_000)
-  if (deltaMinutes < 1) return 'เมื่อสักครู่'
-  if (deltaMinutes < 60) return `${deltaMinutes} นาทีที่แล้ว`
-  const hours = Math.floor(deltaMinutes / 60)
-  if (hours < 24) return `${hours} ชม. ที่แล้ว`
-  const days = Math.floor(hours / 24)
-  return days === 1 ? 'เมื่อวานนี้' : `${days} วันที่แล้ว`
+/** "ก.ค. 69" — for axes whose span is long enough that a bare day is ambiguous. */
+export function formatMonthYear(iso: string): string {
+  return monthYear.format(parseIsoDate(iso))
 }
 
 const clockFormat = new Intl.DateTimeFormat('th-TH', {
